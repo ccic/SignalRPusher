@@ -13,9 +13,7 @@ namespace PushClient
             for (int i = 0; i < r; i++)
             {
                 receivers[i] = new Receiver(protocol, server, senders, monitors);
-                receivers[i].Connect().ContinueWith(t => {
-
-                });
+                _ = receivers[i].Connect();
             }
             Console.WriteLine("Press any key to stop...");
             Console.ReadLine();
