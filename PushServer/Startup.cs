@@ -18,13 +18,7 @@ namespace PushServer
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
-            /*
-            if (env.IsDevelopment())
-            {
-                // For more details on using the user secret store see http://go.microsoft.com/fwlink/?LinkID=532709
-                builder.AddUserSecrets<Startup>();
-            }
-            */
+
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -47,7 +41,7 @@ namespace PushServer
 
             app.UseSignalR(routes =>
             {
-                routes.MapHub<ServerHub>("server");
+                routes.MapHub<ServerHub>("/server");
             });
             
         }

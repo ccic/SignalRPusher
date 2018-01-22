@@ -9,8 +9,8 @@ namespace PushClient
 {
     public class Monitors
     {
-        public readonly long Step = 50;
-        public readonly long Length = 5;
+        public readonly long Step = 100;    // latency unit
+        public readonly long Length = 5;    // how many latency categories will be displayed
 
         private long[] _latency;
         private long _totalReceivedBytes;
@@ -19,7 +19,7 @@ namespace PushClient
         private object _lock = new object();
         private Timer _timer;
         private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
-        public Monitors(long s = 50, long l = 5)
+        public Monitors(long s = 100, long l = 5)
         {
             Step = s;
             Length = l;
@@ -54,7 +54,7 @@ namespace PushClient
                 Interlocked.Exchange(ref _receivedRate, totalReceivedBytes - lastReceivedBytes);
                 _lastReceivedBytes = _totalReceivedBytes;
             }
-            
+            // create a readable latency categories
             var dic = new ConcurrentDictionary<string, long>();
             StringBuilder sb = new StringBuilder();
             for (var i = 0; i < Length; i++)
@@ -72,6 +72,7 @@ namespace PushClient
                 sb.Append(Convert.ToString(label));
                 dic[sb.ToString()] = _latency[i];
             }
+            // dump out all statistics
             Console.WriteLine(JsonConvert.SerializeObject(new
             {
                 Latency = dic,

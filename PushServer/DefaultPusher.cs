@@ -10,7 +10,6 @@ namespace PushServer
         private HubLifetimeManager<THub> _hubLifetimeManager;
         private int _currentSenders;
         private string _clientMethod;
-        //private string _readyMethod;
         private List<string> _connectionIdList = new List<string>();
         private List<Sender<THub>> _senders = new List<Sender<THub>>();
         public DefaultPusher(HubLifetimeManager<THub> hubLifetimeManager)
@@ -21,7 +20,6 @@ namespace PushServer
         {
             _currentSenders = concurrentSenders;
             _clientMethod = clientMethod;
-            //_readyMethod = readyMethod;
             _hubLifetimeManager.InvokeConnectionAsync(connectionId, readyMethod, new object[] { });
         }
 
@@ -37,12 +35,11 @@ namespace PushServer
 
         public void Start()
         {
-            Console.WriteLine("Start to send data with {0} concurrent senders", _currentSenders);
+            Console.WriteLine("Start to send data with {0} concurrent senders to {1} clients", _currentSenders, _connectionIdList.Count);
             var len = _connectionIdList.Count;
             for (int i = 0; i < _currentSenders; i++)
             {
                 var sender = new Sender<THub>(_clientMethod, _connectionIdList[i % len], _hubLifetimeManager);
-                //Console.WriteLine("Send data to {0}", _connectionIdList[i % len]);
                 sender.Start();
                 _senders.Add(sender);
             }
