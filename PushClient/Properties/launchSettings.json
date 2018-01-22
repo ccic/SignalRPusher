@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "PushClient": {
+      "commandName": "Project",
+      "commandLineArgs": "\"http://localhost:5050/server\" 2 \"json\"",
+      "workingDirectory": "C:\\home\\Work\\DevDiv\\SignalR\\samples\\PushClient"
+    }
+  }
+}
