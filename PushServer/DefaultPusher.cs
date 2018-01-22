@@ -42,7 +42,7 @@ namespace PushServer
             for (int i = 0; i < _currentSenders; i++)
             {
                 var sender = new Sender<THub>(_clientMethod, _connectionIdList[i % len], _hubLifetimeManager);
-                Console.WriteLine("Send data to {0}", _connectionIdList[i % len]);
+                //Console.WriteLine("Send data to {0}", _connectionIdList[i % len]);
                 sender.Start();
                 _senders.Add(sender);
             }
