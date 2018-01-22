@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
+using System.Threading;
 namespace PushServer
 {
     public class DefaultPusher<THub> : IPusher<THub>
@@ -10,8 +11,10 @@ namespace PushServer
         private HubLifetimeManager<THub> _hubLifetimeManager;
         private int _currentSenders;
         private string _clientMethod;
+        private long _started;
         private List<string> _connectionIdList = new List<string>();
         private List<Sender<THub>> _senders = new List<Sender<THub>>();
+        private object _locker = new object();
         public DefaultPusher(HubLifetimeManager<THub> hubLifetimeManager)
         {
             _hubLifetimeManager = hubLifetimeManager;
@@ -35,24 +38,38 @@ namespace PushServer
 
         public void Start()
         {
-            Console.WriteLine("Start to send data with {0} concurrent senders to {1} clients", _currentSenders, _connectionIdList.Count);
-            var len = _connectionIdList.Count;
-            for (int i = 0; i < _currentSenders; i++)
+            lock (_locker)
             {
-                var sender = new Sender<THub>(_clientMethod, _connectionIdList[i % len], _hubLifetimeManager);
-                sender.Start();
-                _senders.Add(sender);
+                if (Interlocked.Read(ref _started) == 1)
+                {
+                    // never launch more threads to send than expected
+                    return;
+                }
+                Console.WriteLine("Start to send data with {0} concurrent senders to {1} clients", _currentSenders, _connectionIdList.Count);
+                var len = _connectionIdList.Count;
+                for (int i = 0; i < _currentSenders; i++)
+                {
+                    var sender = new Sender<THub>(_clientMethod, _connectionIdList[i % len], _hubLifetimeManager);
+                    sender.Start();
+                    _senders.Add(sender);
+                }
+                Interlocked.CompareExchange(ref _started, 1, 0);
             }
         }
 
         public void Stop()
         {
-            for (int i = 0; i < _senders.Count; i++)
+            lock (_locker)
             {
-                _senders[i].Stop();
+                for (int i = 0; i < _senders.Count; i++)
+                {
+                    _senders[i].Stop();
+                }
+                _senders.Clear();
+                _connectionIdList.Clear();
+                Interlocked.CompareExchange(ref _started, 0, 1);
+                Console.WriteLine("Stop and clear all senders");
             }
-            _senders.Clear();
-            _connectionIdList.Clear();
         }
     }
 }
