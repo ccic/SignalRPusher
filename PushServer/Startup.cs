@@ -47,7 +47,7 @@ namespace PushServer
 
             app.UseSignalR(routes =>
             {
-                routes.MapHub<ServerHub>("/server");
+                routes.MapHub<ServerHub>("server");
             });
             
         }

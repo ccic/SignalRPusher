@@ -6,28 +6,36 @@ namespace PushClient
 {
     class Program
     {
-        static void StartClient(int senders, string server, string protocol)
+        static void StartClient(int senders, int r, string server, string protocol)
         {
+            Receiver[] receivers = new Receiver[r];
             var monitors = new Monitors();
-            var receiver = new Receiver(protocol, server, senders, monitors);
-            receiver.Connect().ContinueWith(t => {
-                
-            });
+            for (int i = 0; i < r; i++)
+            {
+                receivers[i] = new Receiver(protocol, server, senders, monitors);
+                receivers[i].Connect().ContinueWith(t => {
+
+                });
+            }
             Console.WriteLine("Press any key to stop...");
             Console.ReadLine();
-            receiver.Stop().Wait();
+            for (int i = 0; i < r; i++)
+            {
+                receivers[i].Stop().Wait();
+            }
         }
         static void Main(string[] args)
         {
-            if (args.Length != 3)
+            if (args.Length != 4)
             {
-                Console.WriteLine("Usage: client [server_endpoint] [concurrent_sender_numbers] [protocol: json/messagepack]");
+                Console.WriteLine("Usage: client [server_endpoint] [receiver_numbers] [concurrent_sender_numbers] [protocol: json/messagepack]");
                 return;
             }
             var server = args[0];
-            var senders = int.Parse(args[1]);
-            var protocol = args[2];
-            StartClient(senders, server, protocol);
+	        var receivers = int.Parse(args[1]);
+            var senders = int.Parse(args[2]);
+            var protocol = args[3];
+            StartClient(senders, receivers, server, protocol);
         }
     }
 }

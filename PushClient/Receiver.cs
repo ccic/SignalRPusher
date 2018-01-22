@@ -11,9 +11,6 @@ namespace PushClient
         private HubConnection _hubConnection;
         private string _clientMethod = "echo";
         private string _readyMethod = "ready";
-        //private string _startMethod = "Start";
-        //private string _stopMethod = "Stop";
-        //private string _configureMethod = "Configure";
         private int _senders;
         private Monitors _monitors;
         public Receiver(string protocol, string server, int currentSenders, Monitors monitor)
@@ -25,9 +22,7 @@ namespace PushClient
                     new HubConnectionBuilder().WithUrl(server).WithMessagePackProtocol().Build();
             _hubConnection.On<long>(_clientMethod, (recvMessage) =>
             {
-                //Console.WriteLine("Received: {0}, dur: {1}", recvMessage, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage);
                 _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage, sizeof(long));
-                //_monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - Convert.ToInt32(recvMessage), recvMessage.Length);
             });
             _hubConnection.On(_readyMethod, async () =>
             {
@@ -38,11 +33,6 @@ namespace PushClient
 
         public async Task Connect()
         {
-            /*
-            Task connect = _hubConnection.StartAsync();
-            Task configure = _hubConnection.InvokeAsync("Configure", _senders, _clientMethod, _readyMethod);
-            return Task.WhenAll(connect, configure);
-            */
             await _hubConnection.StartAsync();
             await _hubConnection.InvokeAsync("Configure", _senders, _clientMethod, _readyMethod);
         }
