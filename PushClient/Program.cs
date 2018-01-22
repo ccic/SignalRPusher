@@ -32,7 +32,7 @@ namespace PushClient
                 return;
             }
             var server = args[0];
-	        var receivers = int.Parse(args[1]);
+	    var receivers = int.Parse(args[1]);
             var senders = int.Parse(args[2]);
             var protocol = args[3];
             StartClient(senders, receivers, server, protocol);
