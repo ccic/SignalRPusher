@@ -2,6 +2,7 @@
 This project is used to evaluate SignalR's HubConnection performance. It supports to launch multiple HubConnection to the same SignalR server, and display the response latency.
 
 ## Build
+```bash
 git clone https://github.com/aspnet/SignalR.git .
 cd SignalR/samples
 git clone https://github.com/ccic/SignalRPusher.git
@@ -10,6 +11,7 @@ cd PushServer
 dotnet build
 cd ../PushClient
 dotnet build
+```
 ## Run
 Launch server:
 ```bash
