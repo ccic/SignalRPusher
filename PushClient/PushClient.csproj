@@ -6,11 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <!--
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.SignalR\Microsoft.AspNetCore.SignalR.csproj" />-->
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.SignalR.Client\Microsoft.AspNetCore.SignalR.Client.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.SignalR.Client.Core\Microsoft.AspNetCore.SignalR.Client.Core.csproj" />
-	  <!--
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.SignalR.Service.Core\Microsoft.AspNetCore.SignalR.Service.Core.csproj" />-->
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Client\Microsoft.AspNetCore.SignalR.Client.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Client.Core\Microsoft.AspNetCore.SignalR.Client.Core.csproj" />
   </ItemGroup>
 </Project>
