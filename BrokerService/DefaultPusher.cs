@@ -26,6 +26,11 @@ namespace PushServer
             _brokerOption = brokerOption;
         }
 
+        /* Timestamp distribution:
+         * 
+         * client(timestamp1)         ---> clientHub(timestamp2)   ---> server(timestamp3)
+         * client(local timestamp)    <--- serverHub(timestamp4)   <--- server
+         */
         public void ForClientEcho(List<long> timestamps)
         {
             timestamps.Add(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());

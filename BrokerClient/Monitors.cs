@@ -11,7 +11,7 @@ namespace PushClient
     {
         public readonly long Step = 50;    // latency unit
         public readonly long Length = 8;    // how many latency categories will be displayed
-
+        public readonly string OutFile = "Timestamps.log";
         private long[] _latency;
         private long _totalReceivedBytes;
         private long _lastReceivedBytes;
@@ -37,7 +37,19 @@ namespace PushClient
             Interlocked.Increment(ref _latency[index]);
             Interlocked.Add(ref _totalReceivedBytes, receivedBytes);
         }
-
+        public void WriteAll2File(List<long> allTimestamps)
+        {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(OutFile, true))
+            {
+                var sb = new StringBuilder();
+                sb.Append(DateTimeOffset.Now).Append("|");
+                foreach (long t in allTimestamps)
+                {
+                    sb.Append(":").Append(t);
+                }
+                file.WriteLine(sb.ToString());
+            }
+        }
         public Int64[] Latency => _latency; 
 
         private void Report(object state)

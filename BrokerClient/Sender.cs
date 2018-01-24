@@ -27,6 +27,7 @@ namespace PushClient
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long) * recvMessage.Count);
+                _monitors.WriteAll2File(recvMessage);
             });
             _hubConnection.On(_readyMethod, () =>
             {
