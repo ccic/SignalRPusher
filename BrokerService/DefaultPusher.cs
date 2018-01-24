@@ -37,7 +37,7 @@ namespace PushServer
             if (_serverConnections.Count > 0)
             {
                 int index = (int)(Interlocked.Read(ref _serverSelector) % _serverConnections.Count);
-                _serverHubLifetimeManager.InvokeConnectionAsync(_serverConnections[index], "echo", new object[] { timestamps });
+                _serverHubLifetimeManager.SendConnectionAsync(_serverConnections[index], "echo", new object[] { timestamps });
                 Interlocked.Increment(ref _serverSelector);
             }
         }
@@ -48,7 +48,7 @@ namespace PushServer
             if (_clientConnections.Count > 0)
             {
                 int index = (int)(Interlocked.Read(ref _clientSelector) % _clientConnections.Count);
-                _clientHubLifetimeManager.InvokeConnectionAsync(_clientConnections[index], "echo", new object[] { timestamps });
+                _clientHubLifetimeManager.SendConnectionAsync(_clientConnections[index], "echo", new object[] { timestamps });
                 Interlocked.Increment(ref _clientSelector);
             }
         }
@@ -60,7 +60,7 @@ namespace PushServer
             //Console.WriteLine("Client connection number: {0}", Interlocked.Read(ref _clientConnectionCounter));
             if (Interlocked.Read(ref _clientConnectionCounter) == _brokerOption.ConnectionNumber)
             {
-                _clientHubLifetimeManager.InvokeAllAsync("start", new object[0]);
+                _clientHubLifetimeManager.SendAllAsync("start", new object[0]);
             }
         }
 

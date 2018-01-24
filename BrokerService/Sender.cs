@@ -47,7 +47,7 @@ namespace PushServer
             {
                 //var dic = new ConcurrentDictionary<string, long>();
                 //dic["A"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                _ = _hubLifetimeManager.InvokeConnectionAsync(_connectionId, _method, new object[] { DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+                _ = _hubLifetimeManager.SendConnectionAsync(_connectionId, _method, new object[] { DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
             }
         }
     }

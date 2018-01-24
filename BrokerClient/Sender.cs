@@ -21,9 +21,7 @@ namespace PushClient
         {
             _senders = currentSenders;
             _monitors = monitor;
-            _hubConnection = protocol.ToLower() == "json" ?
-                    new HubConnectionBuilder().WithUrl(server).WithJsonProtocol().Build() :
-                    new HubConnectionBuilder().WithUrl(server).WithMessagePackProtocol().Build();
+            _hubConnection = new HubConnectionBuilder().WithUrl(server).WithJsonProtocol().Build();
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long) * recvMessage.Count);
