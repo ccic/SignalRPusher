@@ -28,8 +28,13 @@ namespace PushServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
+            services.AddOptions();
             services.AddSingleton(typeof(IPusher<>), typeof(DefaultPusher<>));
-            services.Configure<BrokerOption>(Configuration);
+            //services.Configure<BrokerOption>(Configuration);
+            BrokerOption bo = new BrokerOption();
+            var cn = Configuration.GetValue<int>("BrokerOption:ConnectionNumber");
+            bo.ConnectionNumber = cn == 0 ? 1 : cn;
+            services.AddSingleton(typeof(BrokerOption), bo);
             Console.WriteLine("Concurrent connection number: {0}", Configuration.GetValue<int>("BrokerOption:ConnectionNumber"));
         }
 
@@ -46,7 +51,6 @@ namespace PushServer
                 routes.MapHub<ServerHub>("/server");
                 routes.MapHub<ClientHub>("/client");
             });
-            
         }
     }
 }

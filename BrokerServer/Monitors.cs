@@ -17,14 +17,14 @@ namespace PushClient
         private long _lastReceivedBytes;
         private long _receivedRate;
         private object _lock = new object();
-        //private Timer _timer;
+        private Timer _timer;
         private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
         public Monitors(long s = 100, long l = 5)
         {
             Step = s;
             Length = l;
             _latency = new long[Length];
-            //_timer = new Timer(Report, state: this, dueTime: Interval, period: Interval);
+            _timer = new Timer(Report, state: this, dueTime: Interval, period: Interval);
         }
 
         public void Record(long dur, long receivedBytes)

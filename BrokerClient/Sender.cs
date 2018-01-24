@@ -26,8 +26,7 @@ namespace PushClient
                     new HubConnectionBuilder().WithUrl(server).WithMessagePackProtocol().Build();
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
-                //Console.WriteLine("data: {0}", recvMessage);
-                _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long));
+                _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long) * recvMessage.Count);
             });
             _hubConnection.On(_readyMethod, () =>
             {

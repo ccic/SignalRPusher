@@ -10,7 +10,6 @@ namespace PushClient
     {
         private HubConnection _hubConnection;
         private string _clientMethod = "echo";
-        private string _readyMethod = "ready";
         private Monitors _monitors;
         public Receiver(string protocol, string server, Monitors monitor)
         {
@@ -23,23 +22,13 @@ namespace PushClient
                 //Console.WriteLine("data: {0}", recvMessage);
                 recvMessage.Add(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                 _hubConnection.InvokeAsync<object>(_clientMethod, recvMessage);
-                //_monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage, sizeof(long));
-            });
-            _hubConnection.On(_readyMethod, async () =>
-            {
-                Console.WriteLine("Client is ready to receive data");
-                await Start();
+                _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long) * recvMessage.Count);
             });
         }
 
         public async Task Connect()
         {
             await _hubConnection.StartAsync();
-        }
-
-        public async Task Start()
-        {
-            await _hubConnection.InvokeAsync("Start");
         }
 
         public async Task Stop()

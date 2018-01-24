@@ -9,8 +9,8 @@ namespace PushClient
 {
     public class Monitors
     {
-        public readonly long Step = 100;    // latency unit
-        public readonly long Length = 5;    // how many latency categories will be displayed
+        public readonly long Step = 50;    // latency unit
+        public readonly long Length = 8;    // how many latency categories will be displayed
 
         private long[] _latency;
         private long _totalReceivedBytes;

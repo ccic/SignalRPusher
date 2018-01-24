@@ -52,6 +52,7 @@ namespace PushServer
         {
             _clientConnections.Add(connectionId);
             Interlocked.Increment(ref _clientConnectionCounter);
+            //Console.WriteLine("Client connection number: {0}", Interlocked.Read(ref _clientConnectionCounter));
             if (Interlocked.Read(ref _clientConnectionCounter) == _brokerOption.ConnectionNumber)
             {
                 _clientHubLifetimeManager.InvokeAllAsync("start", new object[0]);
@@ -66,6 +67,7 @@ namespace PushServer
         public void OnServerConnected(string connectionId)
         {
             _serverConnections.Add(connectionId);
+            //Console.WriteLine("Service connection number: {0}", _serverConnections.Count);
         }
 
         public void OnServerDisconnected(string connectionId)
