@@ -18,6 +18,7 @@ namespace PushClient
         private long _receivedRate;
         private object _lock = new object();
         private Timer _timer;
+        private long _startPrint;
         private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
         public Monitors(long s = 100, long l = 5)
         {
@@ -27,6 +28,13 @@ namespace PushClient
             _timer = new Timer(Report, state: this, dueTime: Interval, period: Interval);
         }
 
+        public void StartPrint()
+        {
+             if (Interlocked.CompareExchange(ref _startPrint, 1, 0) == 0)
+             {
+                 _timer = new Timer(Report, state: this, dueTime: Interval, period: Interval);
+             }
+        }
         public void Record(long dur, long receivedBytes)
         {
             long index = dur / Step;

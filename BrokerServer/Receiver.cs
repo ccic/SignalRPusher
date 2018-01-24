@@ -14,9 +14,8 @@ namespace PushClient
         public Receiver(string protocol, string server, Monitors monitor)
         {
             _monitors = monitor;
-            _hubConnection = protocol.ToLower() == "json" ?
-                    new HubConnectionBuilder().WithUrl(server).WithJsonProtocol().Build() :
-                    new HubConnectionBuilder().WithUrl(server).WithMessagePackProtocol().Build();
+            _hubConnection = new HubConnectionBuilder().WithUrl(server).WithJsonProtocol()
+                    .WithTransport(Microsoft.AspNetCore.Sockets.TransportType.WebSockets).Build();
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 //Console.WriteLine("data: {0}", recvMessage);
