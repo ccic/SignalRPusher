@@ -10,6 +10,7 @@ namespace PushServer
         void ConfigurePusher(string connectionId, int concurrentSender, string clientMethod, string readyMethod);
         void OnConnected(string connectionId);
         void OnDisconnected(string connectionId);
+        void OnReceived(long sendTimestamp);
         void Start();
         void Stop();
 

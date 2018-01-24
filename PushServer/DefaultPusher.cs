@@ -36,6 +36,11 @@ namespace PushServer
             _connectionIdList.Remove(connectionId);
         }
 
+        public void OnReceived(long sendTimestamp)
+        {
+            
+        }
+
         public void Start()
         {
             lock (_locker)

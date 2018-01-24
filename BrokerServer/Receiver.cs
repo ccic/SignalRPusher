@@ -11,19 +11,19 @@ namespace PushClient
         private HubConnection _hubConnection;
         private string _clientMethod = "echo";
         private string _readyMethod = "ready";
-        private int _senders;
         private Monitors _monitors;
-        public Receiver(string protocol, string server, int currentSenders, Monitors monitor)
+        public Receiver(string protocol, string server, Monitors monitor)
         {
-            _senders = currentSenders;
             _monitors = monitor;
             _hubConnection = protocol.ToLower() == "json" ?
                     new HubConnectionBuilder().WithUrl(server).WithJsonProtocol().Build() :
                     new HubConnectionBuilder().WithUrl(server).WithMessagePackProtocol().Build();
-            _hubConnection.On<long>(_clientMethod, (recvMessage) =>
+            _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 //Console.WriteLine("data: {0}", recvMessage);
-                _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage, sizeof(long));
+                recvMessage.Add(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                _hubConnection.InvokeAsync<object>(_clientMethod, recvMessage);
+                //_monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage, sizeof(long));
             });
             _hubConnection.On(_readyMethod, async () =>
             {
@@ -35,7 +35,6 @@ namespace PushClient
         public async Task Connect()
         {
             await _hubConnection.StartAsync();
-            await _hubConnection.InvokeAsync("Configure", _senders, _clientMethod, _readyMethod);
         }
 
         public async Task Start()
@@ -45,7 +44,7 @@ namespace PushClient
 
         public async Task Stop()
         {
-            await _hubConnection.InvokeAsync("Stop");
+            await _hubConnection.StopAsync();
         }
     }
 }
