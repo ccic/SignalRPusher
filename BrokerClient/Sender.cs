@@ -21,7 +21,8 @@ namespace PushClient
         {
             _senders = currentSenders;
             _monitors = monitor;
-            _hubConnection = new HubConnectionBuilder().WithUrl(server).WithJsonProtocol().Build();
+            _hubConnection = new HubConnectionBuilder().WithUrl(server).WithJsonProtocol()
+                .WithTransport(Microsoft.AspNetCore.Sockets.TransportType.WebSockets).Build();
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long) * recvMessage.Count);
