@@ -18,15 +18,21 @@ namespace PushClient
         private long _receivedRate;
         private object _lock = new object();
         private Timer _timer;
+        private long _startPrint;
         private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
         public Monitors(long s = 100, long l = 5)
         {
             Step = s;
             Length = l;
             _latency = new long[Length];
-            _timer = new Timer(Report, state: this, dueTime: Interval, period: Interval);
         }
-
+        public void StartPrint()
+        {
+            if (Interlocked.CompareExchange(ref _startPrint, 1, 0) == 0)
+            {
+                _timer = new Timer(Report, state: this, dueTime: Interval, period: Interval);
+            }
+        }
         public void Record(long dur, long receivedBytes)
         {
             long index = dur / Step;
@@ -41,6 +47,10 @@ namespace PushClient
         {
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(OutFile, true))
             {
+                /*
+                 * client(timestamp1)         ---> clientHub(timestamp2)   ---> server(timestamp3)
+                 * client(local timestamp)    <--- serverHub(timestamp4)   <--- server
+                 */
                 var sb = new StringBuilder();
                 sb.Append(DateTimeOffset.Now).Append("|");
                 foreach (long t in allTimestamps)

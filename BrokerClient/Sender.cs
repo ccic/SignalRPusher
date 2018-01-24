@@ -31,6 +31,7 @@ namespace PushClient
             {
                 Console.WriteLine("Client starts continuous sending");
                 _start = true;
+                _monitors.StartPrint();
             });
             _timer = new Timer(Start, state: this, dueTime: Interval, period: Interval);
         }
