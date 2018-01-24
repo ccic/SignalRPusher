@@ -67,6 +67,7 @@ namespace PushServer
         public void OnClientDisconnected(string connectionId)
         {
             _clientConnections.Remove(connectionId);
+            Interlocked.Exchange(ref _clientConnectionCounter, 0);
         }
 
         public void OnServerConnected(string connectionId)
