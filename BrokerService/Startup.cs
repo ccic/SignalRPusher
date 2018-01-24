@@ -29,6 +29,8 @@ namespace PushServer
         {
             services.AddSignalR();
             services.AddSingleton(typeof(IPusher<>), typeof(DefaultPusher<>));
+            services.Configure<BrokerOption>(Configuration);
+            Console.WriteLine("Concurrent connection number: {0}", Configuration.GetValue<int>("BrokerOption:ConnectionNumber"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

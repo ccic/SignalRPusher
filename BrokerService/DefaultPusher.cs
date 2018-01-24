@@ -13,15 +13,17 @@ namespace PushServer
         private List<string> _clientConnections = new List<string>();
         private List<string> _serverConnections = new List<string>();
         private List<Sender<THub>> _senders = new List<Sender<THub>>();
-
+        private BrokerOption _brokerOption;
         private long _clientSelector;
         private long _serverSelector;
         private long _clientConnectionCounter;
         public DefaultPusher(HubLifetimeManager<ClientHub> clientHubLifetimeManager,
-            HubLifetimeManager<ServerHub> serverHubLifetimeManager)
+            HubLifetimeManager<ServerHub> serverHubLifetimeManager,
+            BrokerOption brokerOption)
         {
             _clientHubLifetimeManager = clientHubLifetimeManager;
             _serverHubLifetimeManager = serverHubLifetimeManager;
+            _brokerOption = brokerOption;
         }
 
         public void ForClientEcho(List<long> timestamps)
@@ -50,7 +52,7 @@ namespace PushServer
         {
             _clientConnections.Add(connectionId);
             Interlocked.Increment(ref _clientConnectionCounter);
-            if (Interlocked.Read(ref _clientConnectionCounter) == 5)
+            if (Interlocked.Read(ref _clientConnectionCounter) == _brokerOption.ConnectionNumber)
             {
                 _clientHubLifetimeManager.InvokeAllAsync("start", new object[0]);
             }
