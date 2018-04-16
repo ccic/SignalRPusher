@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
 using System.Threading;
+using Microsoft.AspNetCore.SignalR;
+
 namespace PushServer
 {
-    public class DefaultPusher<THub> : IPusher<THub>
+    public class DefaultPusher<THub> : IPusher<THub> where THub : Hub
     {
         private HubLifetimeManager<ClientHub> _clientHubLifetimeManager;
         private HubLifetimeManager<ServerHub> _serverHubLifetimeManager;
@@ -17,6 +16,8 @@ namespace PushServer
         private long _clientSelector;
         private long _serverSelector;
         private long _clientConnectionCounter;
+        private long _serverConnectionCounter;
+
         public DefaultPusher(HubLifetimeManager<ClientHub> clientHubLifetimeManager,
             HubLifetimeManager<ServerHub> serverHubLifetimeManager,
             BrokerOption brokerOption)
@@ -37,7 +38,7 @@ namespace PushServer
             if (_serverConnections.Count > 0)
             {
                 int index = (int)(Interlocked.Read(ref _serverSelector) % _serverConnections.Count);
-                _serverHubLifetimeManager.InvokeConnectionAsync(_serverConnections[index], "echo", new object[] { timestamps });
+                _serverHubLifetimeManager.SendConnectionAsync(_serverConnections[index], "echo", new object[] { timestamps });
                 Interlocked.Increment(ref _serverSelector);
             }
         }
@@ -48,7 +49,7 @@ namespace PushServer
             if (_clientConnections.Count > 0)
             {
                 int index = (int)(Interlocked.Read(ref _clientSelector) % _clientConnections.Count);
-                _clientHubLifetimeManager.InvokeConnectionAsync(_clientConnections[index], "echo", new object[] { timestamps });
+                _clientHubLifetimeManager.SendConnectionAsync(_clientConnections[index], "echo", new object[] { timestamps });
                 Interlocked.Increment(ref _clientSelector);
             }
         }
@@ -57,28 +58,40 @@ namespace PushServer
         {
             _clientConnections.Add(connectionId);
             Interlocked.Increment(ref _clientConnectionCounter);
-            //Console.WriteLine("Client connection number: {0}", Interlocked.Read(ref _clientConnectionCounter));
-            if (Interlocked.Read(ref _clientConnectionCounter) == _brokerOption.ConnectionNumber)
+            if (Interlocked.Read(ref _clientConnectionCounter) % 1000 == 0)
             {
-                _clientHubLifetimeManager.InvokeAllAsync("start", new object[0]);
+                Console.WriteLine($"Client connection number: {Interlocked.Read(ref _clientConnectionCounter)}");
             }
         }
 
         public void OnClientDisconnected(string connectionId)
         {
             _clientConnections.Remove(connectionId);
-            Interlocked.Exchange(ref _clientConnectionCounter, 0);
+            Interlocked.Decrement(ref _clientConnectionCounter);
+            if (Interlocked.Read(ref _clientConnectionCounter) % 1000 == 0)
+            {
+                Console.WriteLine($"Client connection number: {Interlocked.Read(ref _clientConnectionCounter)}");
+            }
         }
 
         public void OnServerConnected(string connectionId)
         {
             _serverConnections.Add(connectionId);
-            //Console.WriteLine("Service connection number: {0}", _serverConnections.Count);
+            Interlocked.Increment(ref _serverConnectionCounter);
+            if (Interlocked.Read(ref _serverConnectionCounter) % 2 == 0)
+            {
+                Console.WriteLine($"Server connection number: {Interlocked.Read(ref _serverConnectionCounter)}");
+            }
         }
 
         public void OnServerDisconnected(string connectionId)
         {
             _serverConnections.Remove(connectionId);
+            Interlocked.Decrement(ref _serverConnectionCounter);
+            if (Interlocked.Read(ref _serverConnectionCounter) % 2 == 0)
+            {
+                Console.WriteLine($"Server connection number: {Interlocked.Read(ref _serverConnectionCounter)}");
+            }
         }
     }
 }

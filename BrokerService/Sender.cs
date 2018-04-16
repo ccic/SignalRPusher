@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+
 namespace PushServer
 {
-    public class Sender<THub>
+    public class Sender<THub> where THub : Hub
     {
         private readonly string _connectionId;
         private HubLifetimeManager<THub> _hubLifetimeManager;
@@ -47,7 +44,7 @@ namespace PushServer
             {
                 //var dic = new ConcurrentDictionary<string, long>();
                 //dic["A"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                _ = _hubLifetimeManager.InvokeConnectionAsync(_connectionId, _method, new object[] { DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+                _ = _hubLifetimeManager.SendConnectionAsync(_connectionId, _method, new object[] { DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
             }
         }
     }

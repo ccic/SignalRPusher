@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
@@ -10,7 +9,7 @@ namespace PushClient
     public class Monitors
     {
         public readonly long Step = 100;    // latency unit
-        public readonly long Length = 5;    // how many latency categories will be displayed
+        public readonly long Length = 10;    // how many latency categories will be displayed
 
         private long[] _latency;
         private long _totalReceivedBytes;
@@ -19,7 +18,8 @@ namespace PushClient
         private object _lock = new object();
         private Timer _timer;
         private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
-        public Monitors(long s = 100, long l = 5)
+
+	public Monitors(long s = 100, long l = 5)
         {
             Step = s;
             Length = l;

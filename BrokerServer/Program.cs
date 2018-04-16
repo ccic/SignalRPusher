@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.AspNetCore.SignalR.Client;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PushClient
@@ -9,12 +9,14 @@ namespace PushClient
         static void StartClient(int r, string server, string protocol)
         {
             Receiver[] receivers = new Receiver[r];
+            var taskList = new List<Task>();
             var monitors = new Monitors();
             for (int i = 0; i < r; i++)
             {
                 receivers[i] = new Receiver(protocol, server, monitors);
-                _ = receivers[i].Connect();
+                taskList.Add(receivers[i].Connect());
             }
+            Task.WhenAll(taskList);
             Console.WriteLine("Press any key to stop...");
             Console.ReadLine();
             for (int i = 0; i < r; i++)

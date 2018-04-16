@@ -6,7 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Common\Monitors.cs" Link="Monitors.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Client\Microsoft.AspNetCore.SignalR.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Client.Core\Microsoft.AspNetCore.SignalR.Client.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Protocols.MsgPack\Microsoft.AspNetCore.SignalR.Protocols.MsgPack.csproj" />
   </ItemGroup>
 </Project>
