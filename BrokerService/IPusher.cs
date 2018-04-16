@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PushServer
+namespace ServiceBroker
 {
     public interface IPusher<THub>
     {

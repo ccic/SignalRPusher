@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.SignalR;
 
-namespace PushServer
+namespace ServiceBroker
 {
     public class DefaultPusher<THub> : IPusher<THub> where THub : Hub
     {
@@ -11,20 +11,18 @@ namespace PushServer
         private HubLifetimeManager<ServerHub> _serverHubLifetimeManager;
         private List<string> _clientConnections = new List<string>();
         private List<string> _serverConnections = new List<string>();
-        private List<Sender<THub>> _senders = new List<Sender<THub>>();
-        private BrokerOption _brokerOption;
+
+        //private BrokerOption _brokerOption;
         private long _clientSelector;
         private long _serverSelector;
         private long _clientConnectionCounter;
         private long _serverConnectionCounter;
 
         public DefaultPusher(HubLifetimeManager<ClientHub> clientHubLifetimeManager,
-            HubLifetimeManager<ServerHub> serverHubLifetimeManager,
-            BrokerOption brokerOption)
+            HubLifetimeManager<ServerHub> serverHubLifetimeManager)
         {
             _clientHubLifetimeManager = clientHubLifetimeManager;
             _serverHubLifetimeManager = serverHubLifetimeManager;
-            _brokerOption = brokerOption;
         }
 
         /* Timestamp distribution:
@@ -37,8 +35,9 @@ namespace PushServer
             timestamps.Add(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             if (_serverConnections.Count > 0)
             {
+                // round-robin select the output server
                 int index = (int)(Interlocked.Read(ref _serverSelector) % _serverConnections.Count);
-                _serverHubLifetimeManager.SendConnectionAsync(_serverConnections[index], "echo", new object[] { timestamps });
+                _serverHubLifetimeManager.SendConnectionAsync(_serverConnections[index], BrokerConstants.DefaultEchoMethod, new object[] { timestamps });
                 Interlocked.Increment(ref _serverSelector);
             }
         }
@@ -48,8 +47,9 @@ namespace PushServer
             timestamps.Add(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             if (_clientConnections.Count > 0)
             {
+                // round-robin select the output client
                 int index = (int)(Interlocked.Read(ref _clientSelector) % _clientConnections.Count);
-                _clientHubLifetimeManager.SendConnectionAsync(_clientConnections[index], "echo", new object[] { timestamps });
+                _clientHubLifetimeManager.SendConnectionAsync(_clientConnections[index], BrokerConstants.DefaultEchoMethod, new object[] { timestamps });
                 Interlocked.Increment(ref _clientSelector);
             }
         }

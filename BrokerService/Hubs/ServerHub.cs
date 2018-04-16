@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
-namespace PushServer
+namespace ServiceBroker
 {
     public class ServerHub : Hub
     {

@@ -5,17 +5,22 @@ using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 
-namespace PushClient
+namespace ServiceBroker
 {
     public class Monitors
     {
         public readonly long Step = 100;    // latency unit
         public readonly long Length = 10;    // how many latency categories will be displayed
         public readonly string OutFile = "Timestamps.log";
+
         private long[] _latency;
         private long _totalReceivedBytes;
         private long _lastReceivedBytes;
+        private long _receivedBytesRate;
+        private long _totalReceived;
+        private long _lastReceived;
         private long _receivedRate;
+
         private object _lock = new object();
         private Timer _timer;
         private long _startPrint;
@@ -46,6 +51,7 @@ namespace PushClient
             }
             Interlocked.Increment(ref _latency[index]);
             Interlocked.Add(ref _totalReceivedBytes, receivedBytes);
+            Interlocked.Increment(ref _totalReceived);
         }
 
         public void WriteAll2File(List<long> allTimestamps)
@@ -74,8 +80,13 @@ namespace PushClient
             lock (_lock) {
                 var totalReceivedBytes = Interlocked.Read(ref _totalReceivedBytes);
                 var lastReceivedBytes = Interlocked.Read(ref _lastReceivedBytes);
-                Interlocked.Exchange(ref _receivedRate, totalReceivedBytes - lastReceivedBytes);
+                Interlocked.Exchange(ref _receivedBytesRate, totalReceivedBytes - lastReceivedBytes);
                 _lastReceivedBytes = _totalReceivedBytes;
+
+                var totalReceived = Interlocked.Read(ref _totalReceived);
+                var lastReceived = Interlocked.Read(ref _lastReceived);
+                Interlocked.Exchange(ref _receivedRate, totalReceived - lastReceived);
+                lastReceived = totalReceived;
             }
             // create a readable latency categories
             var dic = new ConcurrentDictionary<string, long>();
@@ -100,6 +111,7 @@ namespace PushClient
             {
                 Latency = dic,
                 ReceivedRate = _receivedRate,
+                ReceivedBytesRate = _receivedBytesRate,
                 TotalReceivedBytes = _totalReceivedBytes
             }));
         }

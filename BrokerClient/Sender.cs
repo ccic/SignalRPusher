@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.SignalR.Internal.Protocol;
 
-namespace PushClient
+namespace ServiceBroker
 {
     public class Sender
     {
         private HubConnection _hubConnection;
-        private string _clientMethod = "echo";
+        private string _clientMethod = BrokerConstants.DefaultEchoMethod;
         private int _senders;
         private Monitors _monitors;
         private Timer _timer;
