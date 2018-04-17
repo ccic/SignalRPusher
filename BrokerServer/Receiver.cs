@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.SignalR.Internal.Protocol;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ServiceBroker
 {
@@ -16,7 +17,9 @@ namespace ServiceBroker
         {
             _monitors = monitor;
             var proto = protocol == "json" ? (IHubProtocol)new JsonHubProtocol() : new MessagePackHubProtocol();
-            _hubConnection = new HubConnectionBuilder().WithUrl(server, options => { options.Transports = HttpTransportType.WebSockets; }).WithHubProtocol(proto).Build();
+            var hubConnectionBuilder = new HubConnectionBuilder();
+            hubConnectionBuilder.Services.AddSingleton(protocol);
+            _hubConnection = hubConnectionBuilder.WithUrl(server, options => { options.Transports = HttpTransportType.WebSockets; }).Build();
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 //Console.WriteLine("data: {0}", recvMessage);

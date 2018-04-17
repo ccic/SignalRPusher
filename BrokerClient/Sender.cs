@@ -4,7 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.SignalR.Internal.Protocol;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ServiceBroker
 {
@@ -23,13 +24,15 @@ namespace ServiceBroker
             _senders = currentSenders;
             _monitors = monitor;
             var proto = protocol == "json" ? (IHubProtocol)new JsonHubProtocol() : new MessagePackHubProtocol();
-            _hubConnection = new HubConnectionBuilder().WithUrl(server, options => { options.Transports = HttpTransportType.WebSockets; }).WithHubProtocol(proto).Build();
+            var hubConnectionBuilder = new HubConnectionBuilder();
+            hubConnectionBuilder.Services.AddSingleton(protocol);
+            _hubConnection = hubConnectionBuilder.WithUrl(server, options => { options.Transports = HttpTransportType.WebSockets; }).Build();
             _hubConnection.On<List<long>>(_clientMethod, (recvMessage) =>
             {
                 _monitors.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - recvMessage[0], sizeof(long) * recvMessage.Count);
                 _monitors.WriteAll2File(recvMessage);
             });
-            
+            _hubConnection.Closed += Close;
             _timer = new Timer(Start, state: this, dueTime: Interval, period: Interval);
         }
 
@@ -56,6 +59,12 @@ namespace ServiceBroker
                 startTime.Add(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                 _ = _hubConnection.SendAsync(_clientMethod, startTime);
             }
+        }
+
+        private Task Close(Exception e)
+        {
+            Console.WriteLine($"Close connection for {e.Message}");
+            return Task.CompletedTask;
         }
 
         public async Task Stop()
