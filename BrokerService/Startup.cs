@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,11 +25,6 @@ namespace ServiceBroker
             services.AddSignalR();
             services.AddOptions();
             services.AddSingleton(typeof(IPusher<>), typeof(DefaultPusher<>));
-            //BrokerOption bo = new BrokerOption();
-            //var cn = Configuration.GetValue<int>("BrokerOption:ConnectionNumber");
-            //bo.ConnectionNumber = cn == 0 ? 1 : cn;
-            //services.AddSingleton(typeof(BrokerOption), bo);
-            Console.WriteLine("Concurrent connection number: {0}", Configuration.GetValue<int>("BrokerOption:ConnectionNumber"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
