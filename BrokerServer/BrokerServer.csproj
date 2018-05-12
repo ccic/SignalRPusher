@@ -8,11 +8,12 @@
   <ItemGroup>
     <Compile Include="..\Common\Monitors.cs" Link="Monitors.cs" />
     <Compile Include="..\Common\BrokerOption.cs" Link="BrokerOption.cs" />
+    <Compile Include="..\Common\ByteArrayBuilder.cs" Link="ByteArrayBuilder.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Client\Microsoft.AspNetCore.SignalR.Client.csproj" />
-    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Client.Core\Microsoft.AspNetCore.SignalR.Client.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.SignalR.Protocols.MessagePack\Microsoft.AspNetCore.SignalR.Protocols.MessagePack.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="$(MicrosoftAspNetCoreSignalRPackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="$(MicrosoftAspNetCoreSignalRPackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="$(MicrosoftAspNetCoreSignalRPackageVersion)" />
   </ItemGroup>
 </Project>

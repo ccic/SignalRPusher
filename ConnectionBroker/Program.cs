@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
 
 namespace ConnectionBroker
 {
@@ -12,6 +15,11 @@ namespace ConnectionBroker
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging(factory =>
+                {
+                    factory.AddConsole();
+                    factory.SetMinimumLevel(LogLevel.Warning);
+                })
                 .UseStartup<Startup>()
                 .Build();
     }

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Buffers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
+using ServiceBroker;
 
-namespace ConnectionBroker.ConnectionHandlers
+namespace ConnectionBroker
 {
     public class ServerConnectionHandler : ConnectionHandler
     {
@@ -16,16 +16,26 @@ namespace ConnectionBroker.ConnectionHandlers
             _connectionBroker = connectionBroker;
         }
 
-        private string ExtractConnectionId(ReadOnlyMemory<byte> buffer)
+        private async Task ForwardMessageToClient(byte[] buffer)
         {
-            string connectionId = null;
-            var data = Encoding.UTF8.GetString(buffer.Span);
-            var index = data.IndexOf('|');
-            if (index != -1)
+            var received = Encoding.UTF8.GetString(buffer);
+            
+            var record = Encoding.UTF8.GetString(Convert.FromBase64String(received));
+            // format: "connectionId|timestamp1;timestamp2;...;"
+            if (!BrokerUtils.GetConnectionId(record, out var connectionId, out var timestamps))
             {
-                connectionId = data.Substring(0, index);
+                Console.WriteLine($"Illegal message: no connectionId in {Encoding.UTF8.GetString(buffer)} {record}");
             }
-            return connectionId;
+            else
+            {
+                // response format: "timestamp_send;timestamp_server_recv!"
+                var content = new StringBuilder();
+                content.Append(timestamps);
+                content.Append(BrokerConstants.RecordSeparator);
+
+                var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(content.ToString()));
+                await _connectionBroker.SendToClient(connectionId, Encoding.UTF8.GetBytes(base64));
+            }
         }
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
@@ -43,26 +53,9 @@ namespace ConnectionBroker.ConnectionHandlers
                     {
                         if (!buffer.IsEmpty)
                         {
-                            // We can avoid the copy here but we'll deal with that later
-                            if (buffer.IsSingleSegment)
+                            while (BrokerUtils.TryParseMessage(ref buffer, out var record))
                             {
-                                var connectionId = ExtractConnectionId(buffer.First);
-                                if (connectionId != null)
-                                {
-                                    _ = _connectionBroker.SendToClient(connectionId, buffer.First);
-                                }
-                            }
-                            else
-                            {
-                                var position = buffer.Start;
-                                while (buffer.TryGet(ref position, out var memory))
-                                {
-                                    var connectionId = ExtractConnectionId(memory);
-                                    if (connectionId != null)
-                                    {
-                                        _ = _connectionBroker.SendToServer(connectionId, memory);
-                                    }
-                                }
+                                await ForwardMessageToClient(record.ToArray());
                             }
                         }
                         else if (result.IsCompleted)
@@ -70,15 +63,23 @@ namespace ConnectionBroker.ConnectionHandlers
                             break;
                         }
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
                     finally
                     {
-                        connection.Transport.Input.AdvanceTo(buffer.End);
+                        connection.Transport.Input.AdvanceTo(buffer.Start, buffer.End);
                     }
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
             finally
             {
-                await _connectionBroker.RemoveClientConnectionContext(connection);
+                await _connectionBroker.RemoveServerConnectionContext(connection);
             }
         }
     }

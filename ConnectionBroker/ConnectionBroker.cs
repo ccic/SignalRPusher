@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
+using ServiceBroker;
 
 namespace ConnectionBroker
 {
@@ -11,6 +14,10 @@ namespace ConnectionBroker
     {
         private readonly List<ConnectionContext> _serverConnections = new List<ConnectionContext>();
         private ConnectionList _clientConnections = new ConnectionList();
+        private readonly SemaphoreSlim _serverWriteLock = new SemaphoreSlim(1);
+
+        private long _clientConnectionCounter;
+        private long _serverConnectionCounter;
 
         public ConnectionBroker()
         {
@@ -19,24 +26,44 @@ namespace ConnectionBroker
         public Task AddClientConnectionContext(ConnectionContext connection)
         {
             _clientConnections.Add(connection);
+            Interlocked.Increment(ref _clientConnectionCounter);
+            if (Interlocked.Read(ref _clientConnectionCounter) % 1000 == 0)
+            {
+                Console.WriteLine($"Client connection number: {Interlocked.Read(ref _clientConnectionCounter)}");
+            }
             return Task.CompletedTask;
         }
 
         public Task AddServerConnectionContext(ConnectionContext connection)
         {
             _serverConnections.Add(connection);
+            Interlocked.Increment(ref _serverConnectionCounter);
+            if (Interlocked.Read(ref _serverConnectionCounter) % 2 == 0)
+            {
+                Console.WriteLine($"Server connection number: {Interlocked.Read(ref _serverConnectionCounter)}");
+            }
             return Task.CompletedTask;
         }
 
         public Task RemoveClientConnectionContext(ConnectionContext connection)
         {
             _clientConnections.Remove(connection);
+            Interlocked.Decrement(ref _clientConnectionCounter);
+            if (Interlocked.Read(ref _clientConnectionCounter) % 1000 == 0)
+            {
+                Console.WriteLine($"Client connection number: {Interlocked.Read(ref _clientConnectionCounter)}");
+            }
             return Task.CompletedTask;
         }
 
         public Task RemoveServerConnectionContext(ConnectionContext connection)
         {
             _serverConnections.Remove(connection);
+            Interlocked.Decrement(ref _serverConnectionCounter);
+            if (Interlocked.Read(ref _serverConnectionCounter) % 2 == 0)
+            {
+                Console.WriteLine($"Server connection number: {Interlocked.Read(ref _serverConnectionCounter)}");
+            }
             return Task.CompletedTask;
         }
 
@@ -51,13 +78,28 @@ namespace ConnectionBroker
             return connection.Transport.Output.WriteAsync(payload).AsTask();
         }
 
-        // Send "<ConnectionID>|data" to server
-        public Task SendToServer(string connectionId, ReadOnlyMemory<byte> payload)
+        // Send "<ConnectionID>|data!" to server
+        public async Task SendToServer(string connectionId, ReadOnlyMemory<byte> payload)
         {
+            //Console.WriteLine(connectionId);
             var strBuilder = new StringBuilder();
-            strBuilder.Append(connectionId).Append('|').Append(Encoding.UTF8.GetString(payload.Span));
+            strBuilder.Append(connectionId)
+                      .Append(BrokerConstants.ConnectionIdTerminator)
+                      .Append(Encoding.UTF8.GetString(payload.ToArray()))
+                      .Append(BrokerConstants.RecordSeparator);
             var index = StaticRandom.Next(_serverConnections.Count);
-            return _serverConnections[index].Transport.Output.WriteAsync(Encoding.UTF8.GetBytes(strBuilder.ToString())).AsTask();
+            var buffer = BrokerUtils.AddSeparator(strBuilder.ToString());
+
+            await _serverWriteLock.WaitAsync();
+
+            try
+            {
+                await _serverConnections[index].Transport.Output.WriteAsync(buffer);
+            }
+            finally
+            {
+                _serverWriteLock.Release();
+            }
         }
 
         internal class StaticRandom

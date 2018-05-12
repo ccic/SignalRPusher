@@ -1,11 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Buffers;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
+using ServiceBroker;
 
 namespace ConnectionBroker
 {
@@ -33,19 +31,11 @@ namespace ConnectionBroker
                     {
                         if (!buffer.IsEmpty)
                         {
-                            // send "<ConnectionID>|timestamp" to server
-                            if (buffer.IsSingleSegment)
+                            while (BrokerUtils.TryParseMessage(ref buffer, out var record))
                             {
-                                _ = _connectionBroker.SendToServer(connection.ConnectionId, buffer.First);
+                                await _connectionBroker.SendToServer(connection.ConnectionId, record.First);
                             }
-                            else
-                            {
-                                var position = buffer.Start;
-                                while (buffer.TryGet(ref position, out var memory))
-                                {
-                                    _ = _connectionBroker.SendToServer(connection.ConnectionId, memory);
-                                }
-                            }
+                            // send "<ConnectionID>|timestamp;" to server
                         }
                         else if (result.IsCompleted)
                         {
@@ -54,7 +44,7 @@ namespace ConnectionBroker
                     }
                     finally
                     {
-                        connection.Transport.Input.AdvanceTo(buffer.End);
+                        connection.Transport.Input.AdvanceTo(buffer.Start, buffer.End);
                     }
                 }
             }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ConnectionServer": {
+      "commandName": "Project",
+      "commandLineArgs": "“ws://localhost:5050/server” 1"
+    }
+  }
+}

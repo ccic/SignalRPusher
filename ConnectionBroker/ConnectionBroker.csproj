@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +9,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.0.0-preview2-final" />
+    <Compile Include="..\Common\BrokerOption.cs" Link="BrokerOption.cs" />
+    <Compile Include="..\Common\ByteArrayBuilder.cs" Link="ByteArrayBuilder.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore" Version="$(MicrosoftAspNetCorePackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Connections" Version="$(MicrosoftAspNetCoreHttpConnectionsPackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Connections.Client" Version="$(MicrosoftAspNetCoreHttpConnectionsPackageVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="$(MicrosoftAspNetCoreSignalRPackageVersion)" />
+    <PackageReference Include="System.Buffers" Version="$(SystemBuffersPackageVersion)" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,9 @@
+/nologo
+/m
+/nodeReuse:false
+/p:KoreBuildVersion=2.1.0-rc1-15775
+/p:SuppressNETCoreSdkPreviewMessage=true
+/p:RepositoryRoot="C:\home\Work\DevDiv\SignalRPusher/"
+""
+"C:\Users\honzhan\.dotnet\buildtools\korebuild\2.1.0-rc1-15775\scripts\..\KoreBuild.proj"
+""
