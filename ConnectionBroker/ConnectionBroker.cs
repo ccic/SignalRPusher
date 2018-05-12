@@ -85,11 +85,10 @@ namespace ConnectionBroker
             var strBuilder = new StringBuilder();
             strBuilder.Append(connectionId)
                       .Append(BrokerConstants.ConnectionIdTerminator)
-                      .Append(Encoding.UTF8.GetString(payload.ToArray()))
-                      .Append(BrokerConstants.RecordSeparator);
-            var index = StaticRandom.Next(_serverConnections.Count);
+                      .Append(Encoding.UTF8.GetString(payload.ToArray()));
+            //.Append(BrokerConstants.RecordSeparator);
             var buffer = BrokerUtils.AddSeparator(strBuilder.ToString());
-
+            var index = StaticRandom.Next(_serverConnections.Count);
             await _serverWriteLock.WaitAsync();
 
             try

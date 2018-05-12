@@ -86,17 +86,17 @@ namespace ConnectionServer
         {
             var batchMessageCounter = -1;
             var received = Encoding.UTF8.GetString(input);
-            while (BrokerUtils.TryParseMessage(ref received, out var record))
+            //while (BrokerUtils.TryParseMessage(ref received, out var record))
             {
                 // format: "connectionId|timestamp1;timestamp2;...;"
-                if (!BrokerUtils.GetConnectionId(record, out var connectionId, out var timestamps))
+                if (!BrokerUtils.GetConnectionId(received, out var connectionId, out var timestamps))
                 {
-                    Console.WriteLine($"Illegal message: no connectionId {Encoding.UTF8.GetString(input)} {record}");
+                    Console.WriteLine($"Illegal message: no connectionId {Encoding.UTF8.GetString(input)}");
                 }
                 else
                 {
-                    timestamps = Encoding.UTF8.GetString(Convert.FromBase64String(timestamps));
-                    while (BrokerUtils.ParseSendTimestamp(ref timestamps, out var sendTime))
+                    var sendTime = Encoding.UTF8.GetString(Convert.FromBase64String(timestamps));
+                    //while (BrokerUtils.ParseSendTimestamp(ref timestamps, out var sendTime))
                     {
                         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                         // calculate the latency on Server side
@@ -106,8 +106,8 @@ namespace ConnectionServer
                         var content = new StringBuilder(connectionId);
                         content.Append(BrokerConstants.ConnectionIdTerminator);
                         content.Append(sendTime).Append(BrokerConstants.TimestampSeparator);
-                        content.Append(now).Append(BrokerConstants.TimestampSeparator);
-                        content.Append(BrokerConstants.RecordSeparator);
+                        //content.Append(now).Append(BrokerConstants.TimestampSeparator);
+                        //content.Append(BrokerConstants.RecordSeparator);
                         var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(content.ToString()));
                         var buffer = BrokerUtils.AddSeparator(base64);
                         await _writeLock.WaitAsync();

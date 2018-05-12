@@ -71,10 +71,10 @@ namespace ConnectionClient
         {
             if (_start)
             {
-                // message format: "timestamp;"
-                var strBuilder = new StringBuilder(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString());
-                strBuilder.Append(BrokerConstants.TimestampSeparator);
-                var timestamp = strBuilder.ToString();
+                // message format: "timestamp"
+                //var strBuilder = new StringBuilder(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString());
+                //strBuilder.Append(BrokerConstants.TimestampSeparator);
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(timestamp));
 
                 var buffer = BrokerUtils.AddSeparator(base64);
