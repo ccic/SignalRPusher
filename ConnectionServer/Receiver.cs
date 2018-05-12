@@ -32,10 +32,11 @@ namespace ConnectionServer
             _transport = new WebsocketTransport(Application, server);
         }
 
-        public async Task Connect()
+        public Task Connect()
         {
             _ = DispatchMessage();
-            await _transport.Start();
+            _ = _transport.Start();
+            return Task.CompletedTask;
         }
 
         public async Task Stop()
@@ -57,10 +58,13 @@ namespace ConnectionServer
                     {
                         if (!buffer.IsEmpty)
                         {
+                            var batchMessageCounter = -1;
                             while (BrokerUtils.TryParseMessage(ref buffer, out var payload))
                             {
                                 await ProcessReceived(payload.ToArray());
+                                batchMessageCounter++;
                             }
+                            _monitor.RecordBatchMessage(batchMessageCounter);
                         }
                         else if (result.IsCompleted)
                         {
@@ -84,46 +88,35 @@ namespace ConnectionServer
 
         private async Task ProcessReceived(byte[] input)
         {
-            var batchMessageCounter = -1;
             var received = Encoding.UTF8.GetString(input);
-            //while (BrokerUtils.TryParseMessage(ref received, out var record))
-            {
-                // format: "connectionId|timestamp1;timestamp2;...;"
-                if (!BrokerUtils.GetConnectionId(received, out var connectionId, out var timestamps))
-                {
-                    Console.WriteLine($"Illegal message: no connectionId {Encoding.UTF8.GetString(input)}");
-                }
-                else
-                {
-                    var sendTime = Encoding.UTF8.GetString(Convert.FromBase64String(timestamps));
-                    //while (BrokerUtils.ParseSendTimestamp(ref timestamps, out var sendTime))
-                    {
-                        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                        // calculate the latency on Server side
-                        _monitor.Record(now - Convert.ToInt64(sendTime), input.Length);
 
-                        // response format: "connectionId|timestamp_send;timestamp_recv!"
-                        var content = new StringBuilder(connectionId);
-                        content.Append(BrokerConstants.ConnectionIdTerminator);
-                        content.Append(sendTime).Append(BrokerConstants.TimestampSeparator);
-                        //content.Append(now).Append(BrokerConstants.TimestampSeparator);
-                        //content.Append(BrokerConstants.RecordSeparator);
-                        var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(content.ToString()));
-                        var buffer = BrokerUtils.AddSeparator(base64);
-                        await _writeLock.WaitAsync();
-                        try
-                        {
-                            await Transport.Output.WriteAsync(buffer);
-                        }
-                        finally
-                        {
-                            _writeLock.Release();
-                        }
-                    }
-                }
-                batchMessageCounter++;
+            // format: "connectionId|timestamp1;timestamp2;...;"
+            if (!BrokerUtils.GetConnectionId(received, out var connectionId, out var timestamps))
+            {
+                Console.WriteLine($"Illegal message: no connectionId {Encoding.UTF8.GetString(input)}");
             }
-            _monitor.RecordBatchMessage(batchMessageCounter);
+            else
+            {
+                var sendTime = timestamps;
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                // calculate the latency on Server side
+                _monitor.Record(now - Convert.ToInt64(sendTime), input.Length);
+
+                // response format: "connectionId|timestamp_send;timestamp_recv!"
+                var content = new StringBuilder(connectionId);
+                content.Append(BrokerConstants.ConnectionIdTerminator);
+                content.Append(sendTime);
+                var buffer = BrokerUtils.AddSeparator(content.ToString());
+                await _writeLock.WaitAsync();
+                try
+                {
+                    await Transport.Output.WriteAsync(buffer);
+                }
+                finally
+                {
+                    _writeLock.Release();
+                }
+            }
         }
     }
 }

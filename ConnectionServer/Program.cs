@@ -18,7 +18,7 @@ namespace ConnectionServer
                 taskList.Add(receivers[i].Connect());
             }
             await Task.WhenAll(taskList);
-            //monitors.StartPrint();
+            monitors.StartPrint();
             Console.WriteLine("Press any key to stop...");
             Console.ReadLine();
             for (int i = 0; i < r; i++)

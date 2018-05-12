@@ -36,8 +36,6 @@ namespace ServiceBroker
 
         public static bool GetConnectionId(string content, out string connectionId, out string timestamps)
         {
-            // Bug: why there are leading whitespace?
-            //content = content.Trim();
             var index = content.IndexOf(BrokerConstants.ConnectionIdTerminator);
             if (index != -1)
             {

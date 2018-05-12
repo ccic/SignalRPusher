@@ -20,11 +20,10 @@ namespace ConnectionBroker
         {
             var received = Encoding.UTF8.GetString(buffer);
             
-            var record = Encoding.UTF8.GetString(Convert.FromBase64String(received));
             // format: "connectionId|timestamp1;timestamp2;...;"
-            if (!BrokerUtils.GetConnectionId(record, out var connectionId, out var timestamps))
+            if (!BrokerUtils.GetConnectionId(received, out var connectionId, out var timestamps))
             {
-                Console.WriteLine($"Illegal message: no connectionId in {Encoding.UTF8.GetString(buffer)} {record}");
+                Console.WriteLine($"Illegal message: no connectionId in {Encoding.UTF8.GetString(buffer)} {received}");
             }
             else
             {
@@ -33,8 +32,7 @@ namespace ConnectionBroker
                 content.Append(timestamps);
                 content.Append(BrokerConstants.RecordSeparator);
 
-                var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(content.ToString()));
-                await _connectionBroker.SendToClient(connectionId, Encoding.UTF8.GetBytes(base64));
+                await _connectionBroker.SendToClient(connectionId, Encoding.UTF8.GetBytes(content.ToString()));
             }
         }
 

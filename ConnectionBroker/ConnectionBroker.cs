@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Pipelines;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,12 +79,10 @@ namespace ConnectionBroker
         // Send "<ConnectionID>|data!" to server
         public async Task SendToServer(string connectionId, ReadOnlyMemory<byte> payload)
         {
-            //Console.WriteLine(connectionId);
             var strBuilder = new StringBuilder();
             strBuilder.Append(connectionId)
                       .Append(BrokerConstants.ConnectionIdTerminator)
                       .Append(Encoding.UTF8.GetString(payload.ToArray()));
-            //.Append(BrokerConstants.RecordSeparator);
             var buffer = BrokerUtils.AddSeparator(strBuilder.ToString());
             var index = StaticRandom.Next(_serverConnections.Count);
             await _serverWriteLock.WaitAsync();

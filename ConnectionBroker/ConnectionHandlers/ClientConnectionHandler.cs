@@ -35,7 +35,6 @@ namespace ConnectionBroker
                             {
                                 await _connectionBroker.SendToServer(connection.ConnectionId, record.First);
                             }
-                            // send "<ConnectionID>|timestamp;" to server
                         }
                         else if (result.IsCompleted)
                         {

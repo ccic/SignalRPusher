@@ -71,13 +71,9 @@ namespace ConnectionClient
         {
             if (_start)
             {
-                // message format: "timestamp"
-                //var strBuilder = new StringBuilder(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString());
-                //strBuilder.Append(BrokerConstants.TimestampSeparator);
+                // message format: "timestamp" + separator
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(timestamp));
-
-                var buffer = BrokerUtils.AddSeparator(base64);
+                var buffer = BrokerUtils.AddSeparator(timestamp);
 
                 if (_ws.State == WebSocketState.Open)
                 {
@@ -114,14 +110,12 @@ namespace ConnectionClient
         private void ProcessReceived(byte[] buffer, int count)
         {
             var batchMessageCounter = -1;
-            var received = Encoding.UTF8.GetString(Convert.FromBase64String(Encoding.UTF8.GetString(buffer, 0, count)));
-            
+            var received = Encoding.UTF8.GetString(buffer, 0, count);
+
             while (BrokerUtils.TryParseMessage(ref received, out var record))
             {
-                if (BrokerUtils.ParseSendTimestamp(ref record, out var sendTime))
-                {
-                    _monitor.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - Convert.ToInt64(sendTime), count);
-                }
+                var sendTime = record;
+                _monitor.Record(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - Convert.ToInt64(sendTime), count);
                 batchMessageCounter++;
             }
             _monitor.RecordBatchMessage(batchMessageCounter);
